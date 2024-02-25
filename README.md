@@ -11,6 +11,6 @@ You need to run the programs in the following order:
 4. DarcyFlow/MCMC/pCN_dim_wrong_prior.py
 5. DarcyFlow/MCMC/pCNL_dim_independence.py
 6. DarcyFlow/MCMC/draw.py
-The figure will stored in the folder: DarcyFlow/MCMC/results/
+The figure will be stored in the folder: DarcyFlow/MCMC/results/
 
 To run the program, you need to install FEniCSx(Version 0.7) https://fenicsproject.org/, numpy, scipy, and matplotlib. 
