@@ -1,6 +1,6 @@
 import os
 from multiprocessing import Pool, cpu_count
-cpu_num = 10#cpu_count()
+cpu_num = cpu_count()
 from mpi4py import MPI
 import dolfinx as dlf
 from dolfinx import fem
