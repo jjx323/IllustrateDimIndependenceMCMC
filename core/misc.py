@@ -78,43 +78,6 @@ def construct_measure_matrix(V, points):
     S = sp.csr_matrix((vals, ij), shape=(nx, V.tabulate_dof_coordinates().shape[0]))
     return S
 
-# def construct_measure_matrix(V, points):
-#     '''
-#     Input:
-#         V: function space produced by dolfinx.fem.FunctionSpace
-#         points: input points, e.g.,
-#                 points = [[x1_1,x2_1], [x1_2,x2_2], [x1_3,x2_3]] stands for
-#                 there are two measured points with coordinates:
-#                 x1=(x1_1,x1_2,_x1_3), x2=(x2_1,x2_2,x2_3)
-#     Output:
-#         S: a scipy.sparse.csr_matrix
-#     '''
-#     assert points.shape[0] == 3, "The points should be shape 3xN"
-#     domain = V.mesh
-#     bb_tree = geometry.bb_tree(domain, domain.topology.dim)
-#     cells = []
-#     points_on_proc = []
-#     cell_candidates = geometry.compute_collisions_points(bb_tree, points.T)
-#     colliding_cells = geometry.compute_colliding_cells(domain, cell_candidates, points.T)
-#     for i, point in enumerate(points.T):
-#         if len(colliding_cells.links(i)) > 0:
-#             points_on_proc.append(point)
-#             cells.append(colliding_cells.links(i)[0])
-#         else:
-#             print("There may be points lay outside of the domain!")
-#     points_on_proc = np.array(points_on_proc, dtype=np.float64)
-#     ## The following way may be not so elegant, further optimization need to be done
-#     ut = fem.Function(V)
-#     S = sp.lil_matrix((len(points_on_proc), len(ut.x.array)))
-#     ut.x.array[:] = 0.0
-#     ut.x.array[0] = 1.0
-#     S[:, 0] = ut.eval(points_on_proc, cells).squeeze()
-#     for i in range(1, ut.x.array.shape[0]):
-#         ut.x.array[i-1] = 0.0
-#         ut.x.array[i] = 1.0
-#         S[:, i] = ut.eval(points_on_proc, cells).squeeze()
-#     return S.tocsr()
-
 
 def assemble_matrix_scipy(a, bcs=None, dtype=np.float64):
     '''
