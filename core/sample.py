@@ -13,7 +13,6 @@ from scipy.special import logsumexp
 import sys, os
 sys.path.append(os.pardir)
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "../..")))
-from core.approximate_sample import GaussianApproximate
 from core.optimizer import GradientDescent, NewtonCG
 
 
