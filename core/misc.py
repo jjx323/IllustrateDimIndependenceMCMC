@@ -11,6 +11,8 @@ import ufl
 import cupy as cp
 import cupyx.scipy.sparse as csps
 
+assert str(dolfinx.__version__) in {"0.7.1", "0.7.3"}
+dolfinx_version = dolfinx.__version__
 
 def construct_measure_matrix(V, points):
     '''
@@ -31,12 +33,16 @@ def construct_measure_matrix(V, points):
     assert dim == 3, "The points should be shape Nx3 (N is the number of points)"
     mesh = V.mesh
     sdim = V.element.space_dimension
+
     # Determine what process owns a point and what cells it lies within
-    # _, _, owning_points, cells = dolfinx.cpp.geometry.determine_point_ownership(
-    #     mesh._cpp_object, points, 1e-6)
-    ## The extral parameter 1e-6 seems not allowed
-    _, _, owning_points, cells = dolfinx.cpp.geometry.determine_point_ownership(
-        mesh._cpp_object, points)
+    if dolfinx_version in {"0.7.2", "0.7.3"}:
+        _, _, owning_points, cells = dolfinx.cpp.geometry.determine_point_ownership(
+            mesh._cpp_object, points, 1e-6)
+    if dolfinx_version == "0.7.1":
+        ## The extral parameter 1e-6 seems not allowed
+        _, _, owning_points, cells = dolfinx.cpp.geometry.determine_point_ownership(
+            mesh._cpp_object, points)
+
     owning_points = np.asarray(owning_points).reshape(-1, 3)
 
     # Pull owning points back to reference cell
@@ -77,6 +83,43 @@ def construct_measure_matrix(V, points):
     ij = np.concatenate((np.array([rows]), np.array([cols])), axis=0)
     S = sp.csr_matrix((vals, ij), shape=(nx, V.tabulate_dof_coordinates().shape[0]))
     return S
+
+# def construct_measure_matrix(V, points):
+#     '''
+#     Input:
+#         V: function space produced by dolfinx.fem.FunctionSpace
+#         points: input points, e.g.,
+#                 points = [[x1_1,x2_1], [x1_2,x2_2], [x1_3,x2_3]] stands for
+#                 there are two measured points with coordinates:
+#                 x1=(x1_1,x1_2,_x1_3), x2=(x2_1,x2_2,x2_3)
+#     Output:
+#         S: a scipy.sparse.csr_matrix
+#     '''
+#     assert points.shape[0] == 3, "The points should be shape 3xN"
+#     domain = V.mesh
+#     bb_tree = geometry.bb_tree(domain, domain.topology.dim)
+#     cells = []
+#     points_on_proc = []
+#     cell_candidates = geometry.compute_collisions_points(bb_tree, points.T)
+#     colliding_cells = geometry.compute_colliding_cells(domain, cell_candidates, points.T)
+#     for i, point in enumerate(points.T):
+#         if len(colliding_cells.links(i)) > 0:
+#             points_on_proc.append(point)
+#             cells.append(colliding_cells.links(i)[0])
+#         else:
+#             print("There may be points lay outside of the domain!")
+#     points_on_proc = np.array(points_on_proc, dtype=np.float64)
+#     ## The following way may be not so elegant, further optimization need to be done
+#     ut = fem.Function(V)
+#     S = sp.lil_matrix((len(points_on_proc), len(ut.x.array)))
+#     ut.x.array[:] = 0.0
+#     ut.x.array[0] = 1.0
+#     S[:, 0] = ut.eval(points_on_proc, cells).squeeze()
+#     for i in range(1, ut.x.array.shape[0]):
+#         ut.x.array[i-1] = 0.0
+#         ut.x.array[i] = 1.0
+#         S[:, i] = ut.eval(points_on_proc, cells).squeeze()
+#     return S.tocsr()
 
 
 def assemble_matrix_scipy(a, bcs=None, dtype=np.float64):
@@ -206,13 +249,21 @@ def project(u, Vh):
     Output:
         v: fem.Function with rough mesh
 
-    Remark: This function is not so efficient
+    Remark:
+    This function is not so efficient
     '''
     v = fem.Function(Vh)
-    v.interpolate(u, nmm_interpolation_data=fem.create_nonmatching_meshes_interpolation_data(
-        v.function_space.mesh._cpp_object,
-        v.function_space.element,
-        u.function_space.mesh._cpp_object))
+    if dolfinx_version == "0.7.1":
+        v.interpolate(u, nmm_interpolation_data=fem.create_nonmatching_meshes_interpolation_data(
+            v.function_space.mesh._cpp_object,
+            v.function_space.element,
+            u.function_space.mesh._cpp_object))
+    elif dolfinx_version == "0.7.3":
+        v.interpolate(u, nmm_interpolation_data=fem.create_nonmatching_meshes_interpolation_data(
+            v.function_space.mesh._cpp_object,
+            v.function_space.element,
+            u.function_space.mesh._cpp_object, 1e-14))
+
     return v
 
 
