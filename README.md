@@ -1,5 +1,5 @@
 In this repository, we show the dimension independence of the infinite-dimensional MCMC algorithms, including pCN and pCNL, for the steady-state Darcy flow problem. 
-The implementation recovers the figures in Subsection 3.4 of the paper "无限维贝叶斯反演理论、算法与应用"(Infinite-dimensional Bayesian inverse theories, algorithms, and applications) written in Chinese. 
+The implementation recovers the figures in Subsection 3.4 of the paper "无限维贝叶斯反演理论与算法"(Infinite-dimensional Bayesian inverse theories and algorithms) written in Chinese. 
 The general references of these algorithms: 
 1. S. L. Cotter, G. O. Roberts, A. M. Stuart and D. White, MCMC Methods for Functions: Modifying Old Algorithms to Make Them Faster, Statistical Science, 2013
 2. M. Dashti, A. M. Stuart, The Bayesian Approch to Inverse Problems, Hankbook of Uncertainty Quantification, 2017
